@@ -1,0 +1,262 @@
+<table id="roles_dataInfo"></table>
+
+<script>
+	var datagrid;
+	var editRow = undefined; //当前编辑的行
+	var statusObj = [ {
+		sid : 1,
+		statusStr : '男'
+	}, {
+		sid : 0,
+		statusStr : '女'
+	} ];
+	var op;
+	var flag;
+
+	datagrid = $('#roles_dataInfo').datagrid({
+		url : 'servlet/PersonServlet',
+		queryParams : {
+			op : "findAll"
+		},
+		loadMsg : "数据加载中",
+		fitColumns : true,
+		striped : true,
+		nowrap : true,
+		fit : true,
+		rownumbers : true,
+		sortName : "id",
+		remoteSort : false,
+		columns : [ [ {
+			field : 'ids',
+			title : '选择',
+			width : 10,
+			align : 'center',
+			checkbox : true
+		}, {
+			field : 'id',
+			title : '用户编号',
+			width : 60,
+			align : 'center',
+			sortable : true
+		}, {
+			field : 'name',
+			title : '姓名',
+			width : 100,
+			align : 'center',
+			editor : {
+				type : "text",
+				options : {
+					required : true
+				}
+			}
+		}, {
+			field : 'birthday',
+			title : '生日',
+			width : 100,
+			align : 'center',
+			editor : {
+				type : "text"
+			}
+		}, {
+			field : 'gender',
+			title : '性别',
+			width : 100,
+			align : 'center',
+			editor : {
+				type : "combobox",
+				options : {
+					required : true,
+					valueField : 'sid',
+					textField : 'statusStr',
+					data : statusObj
+				}
+			}
+		},{
+				field : 'career',
+				title : '职业',
+				width : 100,
+				align : 'center',
+				editor : {
+					type : "text"
+				}
+			},{
+				field : 'address',
+				title : '住所',
+				width : 100,
+				align : 'center',
+				editor : {
+					type : "text"
+				}
+			},{
+				field : 'mobile',
+				title : '电话',
+				width : 100,
+				align : 'center',
+				editor : {
+					type : "text"
+				}
+			}
+			
+		] ],
+		toolbar : [ {
+			iconCls : 'icon-add',
+			text : "添加",
+			handler : function() {
+				op = "addRoles";
+				flag = "添加";
+
+				//判断当前有没有行在被编辑
+				if (editRow != undefined) {
+					//说明当前有正在被编辑的行
+					datagrid.datagrid('rejectChanges');
+					datagrid.datagrid('endEdit', editRow); //结束正在被编辑的行
+					editRow = undefined;
+
+				} else {
+					datagrid.datagrid('insertRow', {
+						index : 0,
+						row : {}
+					}); //在最前面添加一行
+					datagrid.datagrid('beginEdit', 0); //开始编辑第一行
+					editRow = 0; //记录当前正在被编辑的行
+				}
+			}
+		}, '-', {
+			iconCls : 'icon-edit',
+			text : "修改",
+			handler : function() {
+				op = "updateRoles";
+				flag = "修改";
+
+				var row = datagrid.datagrid("getChecked")[0];
+				if (row == undefined) {
+					//说明用户没有选中要修改的数据
+					$.messager.show({
+						title : '温馨提示',
+						msg : '请选择需要修改的数据',
+						timeout : 2000,
+						showType : 'slide'
+					});
+				} else {
+					//判断是否有正在被编辑的行，若有，则先关闭
+					if (editRow != undefined) {
+						datagrid.datagrid('rejectChanges');
+						datagrid.datagrid('endEdit', editRow); //结束正在被编辑的行
+						editRow = undefined;
+					}
+					//开启要修改的那一行的编辑
+					var index = datagrid.datagrid("getRowIndex", row);
+					//开启更新
+					datagrid.datagrid("updateRow", {
+						index : index,
+						row : row
+					});
+					datagrid.datagrid("beginEdit", index);
+					editRow = index; //记录当前正在被编辑的行	
+				}
+			}
+		}, '-', {
+			iconCls : 'icon-remove',
+			text : "删除",
+			handler : function() {
+
+				var rows = datagrid.datagrid("getChecked");
+				if (rows.length <= 0) {
+					$.messager.show({
+						title : '温馨提示',
+						msg : '请选择需要删除的数据',
+						timeout : 2000,
+						showType : 'slide'
+					});
+				} else {
+					$.messager.confirm('确认删除么', '确认删除么', function(rt) {
+						if (rt) {
+							var rids = "";
+							for (var i = 0; i < rows.length - 1; i++) {
+								rids += rows[i].rid + ",";
+							}
+							rids += rows[i].rid;
+
+							//发送到后台，从数据库中删除
+							$.post("../../servlet/RolesServlet", {
+								op : "delteRoles",
+								rid : rids
+							}, function(data) {
+								data = parseInt($.trim(data));
+								if (data > 0) {
+
+									$.messager.show({
+										title : '成功',
+										msg : '角色删除成功',
+										timeout : 5000,
+										showType : 'slide'
+									});
+									datagrid.datagrid('endEdit', editRow);
+									rows = null;
+									datagrid.datagrid('reload');
+									datagrid.datagrid('rejectChanges');
+									datagrid.datagrid('unselectAll');
+								} else {
+									$.messager.alert('失败', '删除失败', 'error');
+								}
+
+							});
+						}
+					});
+				}
+			}
+		}, '-', {
+			iconCls : 'icon-save',
+			text : "保存",
+			handler : function() {
+				//结束编辑
+				datagrid.datagrid('endEdit', editRow);
+
+				//获取当前正在被编辑的行
+				var rows = datagrid.datagrid("getChanges")[0];
+				if (rows == undefined) {
+					//如果没有获取到正在被编辑的行，说明用户没有修改任何数据
+					datagrid.datagrid('rejectChanges');
+					datagrid.datagrid('unselectAll');
+					editRow = undefined;
+				} else {
+
+					//添加op属性
+					rows["op"] = op;
+
+					$.post("../../servlet/RolesServlet", rows, function(data) {
+						data = parseInt($.trim(data));
+						if (data > 0) {
+
+							$.messager.show({
+								title : '成功',
+								msg : '角色' + flag + '成功',
+								timeout : 3000,
+								showType : 'slide'
+							});
+							datagrid.datagrid('endEdit', editRow);
+							rows = null;
+							datagrid.datagrid('reload');
+							datagrid.datagrid('rejectChanges');
+							datagrid.datagrid('unselectAll');
+						} else {
+							$.messager.alert('失败', flag + '失败', 'error');
+						}
+					});
+				}
+			}
+
+		}, '-', {
+			iconCls : 'icon-undo',
+			text : "撤销",
+			handler : function() {
+
+				datagrid.datagrid('rejectChanges');
+				datagrid.datagrid('endEdit', editRow); //结束正在被编辑的行
+				editRow = undefined;
+
+			}
+		} ]
+
+	});
+</script>
