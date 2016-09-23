@@ -102,7 +102,7 @@
 			iconCls : 'icon-add',
 			text : "添加",
 			handler : function() {
-				op = "addRoles";
+				op = "addPerson";
 				flag = "添加";
 
 				//判断当前有没有行在被编辑
@@ -125,7 +125,7 @@
 			iconCls : 'icon-edit',
 			text : "修改",
 			handler : function() {
-				op = "updateRoles";
+				op = "updatePerson";
 				flag = "修改";
 
 				var row = datagrid.datagrid("getChecked")[0];
@@ -171,20 +171,19 @@
 				} else {
 					$.messager.confirm('确认删除么', '确认删除么', function(rt) {
 						if (rt) {
-							var rids = "";
+						 	var ids = "";
 							for (var i = 0; i < rows.length - 1; i++) {
-								rids += rows[i].rid + ",";
+								ids += rows[i].id + ",";
 							}
-							rids += rows[i].rid;
+							ids += rows[i].id; 
 
 							//发送到后台，从数据库中删除
-							$.post("../../servlet/RolesServlet", {
-								op : "delteRoles",
-								rid : rids
+							$.post("servlet/PersonServlet", {
+								op : "deltePerson",
+								id : ids
 							}, function(data) {
 								data = parseInt($.trim(data));
-								if (data > 0) {
-
+								
 									$.messager.show({
 										title : '成功',
 										msg : '角色删除成功',
@@ -196,10 +195,7 @@
 									datagrid.datagrid('reload');
 									datagrid.datagrid('rejectChanges');
 									datagrid.datagrid('unselectAll');
-								} else {
-									$.messager.alert('失败', '删除失败', 'error');
-								}
-
+								
 							});
 						}
 					});
@@ -224,9 +220,8 @@
 					//添加op属性
 					rows["op"] = op;
 
-					$.post("../../servlet/RolesServlet", rows, function(data) {
-						data = parseInt($.trim(data));
-						if (data > 0) {
+					$.post("servlet/PersonServlet", rows, function(data) {
+					
 
 							$.messager.show({
 								title : '成功',
@@ -239,9 +234,7 @@
 							datagrid.datagrid('reload');
 							datagrid.datagrid('rejectChanges');
 							datagrid.datagrid('unselectAll');
-						} else {
-							$.messager.alert('失败', flag + '失败', 'error');
-						}
+						
 					});
 				}
 			}

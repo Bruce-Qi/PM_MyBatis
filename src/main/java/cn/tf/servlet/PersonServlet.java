@@ -15,8 +15,6 @@ import cn.tf.utils.MyBatisUtil;
 
 
 
-
-
 public class PersonServlet  extends BasicServlet {
 	private static final long serialVersionUID = 1L;
      
@@ -28,7 +26,88 @@ public class PersonServlet  extends BasicServlet {
 		
 		if("findAll".equals(op)){
 			findAll(request,response);
+		}else if("addPerson".equals(op)){
+			addPerson(request,response);
+		}else if("updatePerson".equals(op)){
+			updatePerson(request,response);
+		}else if("deltePerson".equals(op)){
+			deltePerson(request,response);
 		}
+		
+	}
+
+	//删除
+
+	private void deltePerson(HttpServletRequest request,
+			HttpServletResponse response) {
+		String id=request.getParameter("id");
+		session=MyBatisUtil.getSession();
+		PersonMapper personMapper=session.getMapper(PersonMapper.class);
+		
+		personMapper.delete(id);
+		
+		MyBatisUtil.close(session);
+		this.out(response, 1);		
+		
+	}
+
+
+	//修改
+	private void updatePerson(HttpServletRequest request,
+			HttpServletResponse response)  {
+		String id=request.getParameter("id");
+		String name=request.getParameter("name");
+		String birthday=request.getParameter("birthday");
+		String gender=request.getParameter("gender");
+		String career=request.getParameter("career");
+		String address=request.getParameter("address");
+		String mobile=request.getParameter("mobile");
+		
+		Person person=new Person();
+		person.setName(name);
+		person.setBirthday(birthday);
+		person.setCareer(career);
+		person.setAddress(address);
+		person.setMobile(mobile);
+		person.setGender(gender);
+		person.setId(id);
+		
+		
+		session=MyBatisUtil.getSession();
+		PersonMapper personMapper=session.getMapper(PersonMapper.class);
+		personMapper.update(person);
+		MyBatisUtil.close(session);
+		
+		this.out(response,1);		
+	}
+
+
+	//添加
+	private void addPerson(HttpServletRequest request,
+			HttpServletResponse response) {
+		String name=request.getParameter("name");
+		String birthday=request.getParameter("birthday");
+		String gender=request.getParameter("gender");
+		String career=request.getParameter("career");
+		String address=request.getParameter("address");
+		String mobile=request.getParameter("mobile");
+		
+		Person person=new Person();
+		person.setName(name);
+		person.setBirthday(birthday);
+		person.setCareer(career);
+		person.setAddress(address);
+		person.setMobile(mobile);
+		person.setGender(gender);
+		
+		
+		
+		session=MyBatisUtil.getSession();
+		PersonMapper personMapper=session.getMapper(PersonMapper.class);
+		personMapper.add(person);
+		MyBatisUtil.close(session);
+		
+		this.out(response,1);
 		
 	}
 
