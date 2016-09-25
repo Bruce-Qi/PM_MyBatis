@@ -32,8 +32,7 @@ public class PersonServlet  extends BasicServlet {
 			updatePerson(request,response);
 		}else if("deltePerson".equals(op)){
 			deltePerson(request,response);
-		}
-		
+		}	
 	}
 
 	//删除
@@ -41,7 +40,7 @@ public class PersonServlet  extends BasicServlet {
 	private void deltePerson(HttpServletRequest request,
 			HttpServletResponse response) {
 		String id=request.getParameter("id");
-		session=MyBatisUtil.getSession();
+		session=MyBatisUtil.getAutoTransSession();
 		PersonMapper personMapper=session.getMapper(PersonMapper.class);
 		
 		personMapper.delete(id);
